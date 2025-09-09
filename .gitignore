@@ -1,0 +1,14 @@
+/venv
+
+__pycache__/
+*.pyc
+*.pyd
+
+*.pytest_cache/
+
+.vscode/
+
+*.log
+*.tmp
+
+instance/
