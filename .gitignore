@@ -13,4 +13,4 @@ __pycache__/
 
 instance/
 
-app.db
+/app/app.db
