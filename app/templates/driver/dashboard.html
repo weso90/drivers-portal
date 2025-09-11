@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Kierowcy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Witaj, {{ driver.username }}!</h1>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">Wyloguj</a>
+        </div>
+        <hr>
+
+        <h3>Twoje dane:</h3>
+        <ul>
+            <li><strong>Nazwa użytkownika:</strong> {{ driver.username }}</li>
+            <li><strong>Rola:</strong> {{ driver.role }}</li>
+            <li><strong>Uber ID:</strong> {{ driver.uber_id or 'Nie połączono' }}</li>
+            <li><strong>Bolt ID:</strong> {{ driver.bolt_id or 'Nie połączono' }}</li>
+        </ul>
+
+        <div class="mt-4">
+            <p><em>Wkrótce w tym miejscu pojawią się Twoje rozliczenia.</em></p>
+        </div>
+    </div>
+</body>
+</html>

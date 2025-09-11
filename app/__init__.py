@@ -9,7 +9,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 
 #przekierowanie niezalogowanych na admin_login
-login_manager.login_view = 'admin_login'
+login_manager.login_view = 'driver_login'
 #komunikat dla niezalogowanych
 login_manager.login_message = 'Strona wymaga logowania'
 login_manager.login_message_category = 'warning'

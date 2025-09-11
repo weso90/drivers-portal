@@ -3,7 +3,7 @@ from flask import current_app as app
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User
-from app.forms import AddDriverForm
+from app.forms import AddDriverForm, DriverLoginForm
 
 
 #trasa logowania, narazie na sztywno
@@ -66,10 +66,42 @@ def add_driver():
     
     return render_template('admin/add_driver.html', form=form)
 
-#wylogowywanie
-@app.route('/admin/logout')
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
+def driver_login():
+    if current_user.is_authenticated:
+        if current_user.role == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        elif current_user.role == 'driver':
+            return redirect(url_for('driver_dashboard'))
+        
+    form = DriverLoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            if user.role == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('driver_dashboard'))
+        else:
+            flash('Nieprawidłowe dane logowania', form=form)
+
+    return render_template('driver/login.html', form=form)
+
+@app.route('/dashboard')
 @login_required
-def admin_logout():
+def driver_dashboard():
+    if current_user.role != 'driver':
+        flash('Brak uprawnień.', 'danger')
+        return redirect(url_for('driver_login'))
+    
+    return render_template('driver/dashboard.html', driver=current_user)
+
+@app.route('/logout')
+@login_required
+def logout():
     logout_user()
-    flash('zostałeś wylogowany', 'info')
-    return redirect(url_for('admin_login'))
+    flash('Zostałeś poprawnie wylogowany', 'info')
+    return redirect(url_for('driver_login'))

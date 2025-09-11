@@ -8,3 +8,8 @@ class AddDriverForm(FlaskForm):
     uber_id = StringField('Uber driver ID')
     bolt_id = StringField('Bolt driver ID')
     submit = SubmitField('Dodaj kierowcę')
+
+class DriverLoginForm(FlaskForm):
+    username = StringField('Nazwa użytkownika', validators=[DataRequired()])
+    password = PasswordField('Hasło', validators=[DataRequired()])
+    submit = SubmitField('Zaloguj')
