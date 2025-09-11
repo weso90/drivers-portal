@@ -49,5 +49,20 @@
             </tbody>
         </table>
     </div>
+    <div class="card my-4">
+        <div class="card-body">
+            <h5 class="card-title">Wygeneruj raport zarobków Bolt</h5>
+            <form action="{{ url_for('admin_bolt_report') }}" method="GET">
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="date" name="report_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success">Generuj</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

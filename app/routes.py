@@ -1,9 +1,11 @@
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask import current_app as app
 from flask_login import login_user, logout_user, login_required, current_user
-from app import db
+from app import db, bolt_api
 from app.models import User
 from app.forms import AddDriverForm, DriverLoginForm
+from datetime import datetime
+from collections import defaultdict
 
 
 #trasa logowania, narazie na sztywno
@@ -98,6 +100,51 @@ def driver_dashboard():
         return redirect(url_for('driver_login'))
     
     return render_template('driver/dashboard.html', driver=current_user)
+
+@app.route('/admin/reports/bolt')
+@login_required
+def admin_bolt_report():
+    if current_user.role != 'admin':
+        # Ta część pozostaje bez zmian
+        flash('Brak uprawnień.', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    
+    date_str = request.args.get('report_date')
+    if not date_str:
+        # Ta część pozostaje bez zmian
+        flash('Proszę wybrać datę raportu.', 'warning')
+        return redirect(url_for('admin_dashboard'))
+    
+    report_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    orders = bolt_api.get_fleet_orders_for_day(report_date)
+
+    if orders is None:
+        # Ta część pozostaje bez zmian
+        flash('Nie udało się pobrać danych z API Bolta.', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    
+    # Cała logika sumowania zarobków pozostaje bez zmian
+    total_earnings = 0
+    driver_earnings = defaultdict(float)
+    for order in orders:
+        earnings = order.get("order_price", {}).get("net_earnings", 0)
+        total_earnings += earnings
+        driver_name = order.get("driver_name", "Nieznany kierowca")
+        driver_earnings[driver_name] += earnings
+    sorted_drivers = sorted(driver_earnings.items(), key=lambda item: item[1], reverse=True)
+
+    # === UWAGA: ZAMIENIAMY 'return render_template' NA TO: ===
+    # Tworzymy słownik z danymi, które normalnie wysłalibyśmy do szablonu
+    debug_data = {
+        "status": "Sukces",
+        "data_raportu": report_date.isoformat(),
+        "znaleziono_przejazdow": len(orders),
+        "calkowity_zarobek_w_groszach": total_earnings,
+        "zarobki_kierowcow": dict(sorted_drivers)
+    }
+    # Zwracamy te dane jako odpowiedź JSON
+    return jsonify(debug_data)
+    # ========================================================
 
 @app.route('/logout')
 @login_required
