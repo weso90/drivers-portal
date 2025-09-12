@@ -8,7 +8,6 @@ from datetime import datetime
 from collections import defaultdict
 
 
-#trasa logowania, narazie na sztywno
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     #jeżeli administrator jest już zalogowany, przenieś go do strony admin_dashboard
@@ -105,46 +104,65 @@ def driver_dashboard():
 @login_required
 def admin_bolt_report():
     if current_user.role != 'admin':
-        # Ta część pozostaje bez zmian
         flash('Brak uprawnień.', 'danger')
         return redirect(url_for('admin_dashboard'))
     
-    date_str = request.args.get('report_date')
-    if not date_str:
-        # Ta część pozostaje bez zmian
-        flash('Proszę wybrać datę raportu.', 'warning')
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    if not start_date_str or not end_date_str:
+        flash('Proszę wybrać początkową i końcową datę raportu.', 'warning')
         return redirect(url_for('admin_dashboard'))
     
-    report_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    orders = bolt_api.get_fleet_orders_for_day(report_date)
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+
+    if (end_date - start_date).days > 31:
+        flash('Zakres dat nie może przekraczać 31 dni.', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    
+    orders = bolt_api.get_fleet_orders_for_range(start_date, end_date)
 
     if orders is None:
-        # Ta część pozostaje bez zmian
-        flash('Nie udało się pobrać danych z API Bolta.', 'danger')
+        flash('Nie udało się pobrać danych z API Bolt. Sprawdź logi serwera.', 'danger')
         return redirect(url_for('admin_dashboard'))
     
-    # Cała logika sumowania zarobków pozostaje bez zmian
-    total_earnings = 0
-    driver_earnings = defaultdict(float)
-    for order in orders:
-        earnings = order.get("order_price", {}).get("net_earnings", 0)
-        total_earnings += earnings
-        driver_name = order.get("driver_name", "Nieznany kierowca")
-        driver_earnings[driver_name] += earnings
-    sorted_drivers = sorted(driver_earnings.items(), key=lambda item: item[1], reverse=True)
+    driver_settlements = defaultdict(lambda: {
+        'driver_name': "nieznany kierowca", 'total_trips': 0, 'ride_price': 0, 'booking_fee': 0,
+        'toll_fee': 0, 'cancellation_fee': 0, 'tip': 0, 'net_earnings': 0,
+        'cash_discount': 0, 'in_app_discount': 0, 'commission': 0
+    })
 
-    # === UWAGA: ZAMIENIAMY 'return render_template' NA TO: ===
-    # Tworzymy słownik z danymi, które normalnie wysłalibyśmy do szablonu
-    debug_data = {
-        "status": "Sukces",
-        "data_raportu": report_date.isoformat(),
-        "znaleziono_przejazdow": len(orders),
-        "calkowity_zarobek_w_groszach": total_earnings,
-        "zarobki_kierowcow": dict(sorted_drivers)
-    }
-    # Zwracamy te dane jako odpowiedź JSON
-    return jsonify(debug_data)
-    # ========================================================
+    for order in orders:
+        price = order.get("order_price", {})
+        driver_uuid = order.get("driver_uuid")
+
+        if not driver_uuid or not price:
+            continue
+
+        driver_settlements[driver_uuid]['driver_name'] = order.get("driver_name", driver_settlements[driver_uuid]['driver_name'])
+        driver_settlements[driver_uuid]['total_trips'] += 1
+        
+        driver_settlements[driver_uuid]['ride_price'] += price.get('ride_price') or 0
+        driver_settlements[driver_uuid]['booking_fee'] += price.get('booking_fee') or 0
+        driver_settlements[driver_uuid]['toll_fee'] += price.get('toll_fee') or 0
+        driver_settlements[driver_uuid]['cancellation_fee'] += price.get('cancellation_fee') or 0
+        driver_settlements[driver_uuid]['tip'] += price.get('tip') or 0
+        driver_settlements[driver_uuid]['net_earnings'] += price.get('net_earnings') or 0
+        driver_settlements[driver_uuid]['cash_discount'] += price.get('cash_discount') or 0
+        driver_settlements[driver_uuid]['in_app_discount'] += price.get('in_app_discount') or 0
+        driver_settlements[driver_uuid]['commission'] += price.get('commission') or 0
+
+    sorted_settlements = sorted(driver_settlements.values(), key=lambda x: x['net_earnings'], reverse=True)
+
+    return render_template(
+        'admin/bolt_report.html',
+        start_date=start_date,
+        end_date=end_date,
+        settlements=sorted_settlements,
+        total_order_count=len(orders)
+    )
+
 
 @app.route('/logout')
 @login_required
