@@ -1,7 +1,7 @@
-from flask import render_template, request, flash, redirect, url_for, jsonify
+from flask import render_template, request, flash, redirect, url_for
 from flask import current_app as app
 from flask_login import login_user, logout_user, login_required, current_user
-from app import db, bolt_api
+from app import db
 from app.models import User
 from app.forms import AddDriverForm, DriverLoginForm
 from datetime import datetime
@@ -99,70 +99,6 @@ def driver_dashboard():
         return redirect(url_for('driver_login'))
     
     return render_template('driver/dashboard.html', driver=current_user)
-
-@app.route('/admin/reports/bolt')
-@login_required
-def admin_bolt_report():
-    if current_user.role != 'admin':
-        flash('Brak uprawnień.', 'danger')
-        return redirect(url_for('admin_dashboard'))
-    
-    start_date_str = request.args.get('start_date')
-    end_date_str = request.args.get('end_date')
-
-    if not start_date_str or not end_date_str:
-        flash('Proszę wybrać początkową i końcową datę raportu.', 'warning')
-        return redirect(url_for('admin_dashboard'))
-    
-    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-
-    if (end_date - start_date).days > 31:
-        flash('Zakres dat nie może przekraczać 31 dni.', 'danger')
-        return redirect(url_for('admin_dashboard'))
-    
-    orders = bolt_api.get_fleet_orders_for_range(start_date, end_date)
-
-    if orders is None:
-        flash('Nie udało się pobrać danych z API Bolt. Sprawdź logi serwera.', 'danger')
-        return redirect(url_for('admin_dashboard'))
-    
-    driver_settlements = defaultdict(lambda: {
-        'driver_name': "nieznany kierowca", 'total_trips': 0, 'ride_price': 0, 'booking_fee': 0,
-        'toll_fee': 0, 'cancellation_fee': 0, 'tip': 0, 'net_earnings': 0,
-        'cash_discount': 0, 'in_app_discount': 0, 'commission': 0
-    })
-
-    for order in orders:
-        price = order.get("order_price", {})
-        driver_uuid = order.get("driver_uuid")
-
-        if not driver_uuid or not price:
-            continue
-
-        driver_settlements[driver_uuid]['driver_name'] = order.get("driver_name", driver_settlements[driver_uuid]['driver_name'])
-        driver_settlements[driver_uuid]['total_trips'] += 1
-        
-        driver_settlements[driver_uuid]['ride_price'] += price.get('ride_price') or 0
-        driver_settlements[driver_uuid]['booking_fee'] += price.get('booking_fee') or 0
-        driver_settlements[driver_uuid]['toll_fee'] += price.get('toll_fee') or 0
-        driver_settlements[driver_uuid]['cancellation_fee'] += price.get('cancellation_fee') or 0
-        driver_settlements[driver_uuid]['tip'] += price.get('tip') or 0
-        driver_settlements[driver_uuid]['net_earnings'] += price.get('net_earnings') or 0
-        driver_settlements[driver_uuid]['cash_discount'] += price.get('cash_discount') or 0
-        driver_settlements[driver_uuid]['in_app_discount'] += price.get('in_app_discount') or 0
-        driver_settlements[driver_uuid]['commission'] += price.get('commission') or 0
-
-    sorted_settlements = sorted(driver_settlements.values(), key=lambda x: x['net_earnings'], reverse=True)
-
-    return render_template(
-        'admin/bolt_report.html',
-        start_date=start_date,
-        end_date=end_date,
-        settlements=sorted_settlements,
-        total_order_count=len(orders)
-    )
-
 
 @app.route('/logout')
 @login_required
