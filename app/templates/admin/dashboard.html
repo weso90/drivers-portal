@@ -23,6 +23,7 @@
 
         <h3>Zarządzaj kierowcami</h3>
         <a href="{{ url_for('add_driver') }}" class="btn btn-primary mb-3">Dodaj nowego kierowcę</a>
+        <a href="{{ url_for('upload_csv') }}" class="btn btn-success mb-3">Import zarobków z CSV</a>
 
         <table class="table table-striped">
             <thead>
@@ -50,28 +51,6 @@
         </table>
     </div>
 
-<div class="card my-4">
-    <div class="card-body">
-        <h5 class="card-title">Wygeneruj raport zarobków Bolt</h5>
-        
-        <form action="{{ url_for('admin_bolt_report') }}" method="GET">
-            <div class="row align-items-end">
-                <div class="col-md-5">
-                    <label for="start_date" class="form-label">Data początkowa</label>
-                    <input type="date" id="start_date" name="start_date" class="form-control" required>
-                </div>
-                <div class="col-md-5">
-                    <label for="end_date" class="form-label">Data końcowa</label>
-                    <input type="date" id="end_date" name="end_date" class="form-control" required>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-success w-100">Generuj</button>
-                </div>
-            </div>
-        </form>
-        
-    </div>
-</div>
 
 </body>
 </html>

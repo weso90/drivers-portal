@@ -18,3 +18,27 @@ class User(UserMixin, db.Model):
     
     def __repr__(self):
         return f'<User {self.username} ({self.role})>'
+    
+
+class BoltEarnings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    #relacja do tabeli User
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", backref="bolt_earnings")
+
+    #dodatkowe info
+    bolt_id = db.Column(db.String(128), nullable=False)
+
+    #dane z CSV (dzienny snapshot)
+    report_date = db.Column(db.Date, nullable=False)
+    gross_total = db.Column(db.Float, nullable=False) #zarobki ogółem
+    expenses_total = db.Column(db.Float, nullable=False) # opłaty ogółem
+    net_income = db.Column(db.Float, nullable=False) #Zarobki netto, po odjęciu prowizji
+    cash_collected = db.Column(db.Float, nullable=False) # pobrana gótówka
+    vat_due = db.Column(db.Float, nullable=False) #należny vat
+    actual_income = db.Column(db.Float, nullable=False) #rzeczywisty zarobek
+
+    def __repr__(self):
+        return f"<Bolt Earnings {self.report_date} user={self.user_id}"
+    

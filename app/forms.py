@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, FileField
 from wtforms.validators import DataRequired, Length
 
 class AddDriverForm(FlaskForm):
@@ -13,3 +13,7 @@ class DriverLoginForm(FlaskForm):
     username = StringField('Nazwa użytkownika', validators=[DataRequired()])
     password = PasswordField('Hasło', validators=[DataRequired()])
     submit = SubmitField('Zaloguj')
+
+class CSVUploadForm(FlaskForm):
+    file = FileField("Plik CSV", validators=[DataRequired()])
+    submit = SubmitField("Wyślij")
