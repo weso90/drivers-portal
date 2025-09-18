@@ -4,21 +4,36 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
+
+##########################
+###   INICJALIZACJA ROZSZERZEŃ
+##########################
+
+#baza danych (SQLAlchemy)
 db = SQLAlchemy()
+
+#migracje bazy (Alembic - Flask-Migrate)
 migrate = Migrate()
+
+#obsługa logowania (Flask-Login)
 login_manager = LoginManager()
 
-#przekierowanie niezalogowanych na admin_login
+#ustawienia dla niezalogowanych
 login_manager.login_view = 'driver_login'
-#komunikat dla niezalogowanych
 login_manager.login_message = 'Strona wymaga logowania'
 login_manager.login_message_category = 'warning'
 
 def create_app():
+    """
+    Funkcja fabrykująca aplikację Flask.
+    Tworzy i konfiguruje instancję aplikacji wraz z rozszerzeniami.
+    """
     app = Flask(__name__)
 
-    # sekretny klucz do obsługi sesji
-    app.config['SECRET_KEY'] = 'sekretny-klucz'
+
+    #konfiguracja aplikacji
+
+    app.config['SECRET_KEY'] = 'sekretny-klucz' # sekretny klucz do obsługi sesji - DO ZMIANY W WERSJI PRODUKCYJNEJ!!!!!!
 
     #Konfiguracja bazy danych SQLite
     basedir = os.path.abspath(os.path.dirname(__file__))

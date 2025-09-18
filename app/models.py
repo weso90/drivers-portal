@@ -2,7 +2,20 @@ from app import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
+##########################
+###   MODEL UŻYTKOWNIKA
+##########################
+
 class User(UserMixin, db.Model):
+    """
+    Model użytkownika systemu (admin lub kierowca).
+    Pola:
+    - username: login do systemu
+    - password_hash: hasło (hashowane)
+    - role: rola użytkownika (admin lub driver)
+    - uber_id: identyfikator kierowcy Uber
+    - bolt_id: identyfikator kierowcy Bolt
+    """
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
@@ -10,24 +23,49 @@ class User(UserMixin, db.Model):
     uber_id = db.Column(db.String(128), nullable=True)
     bolt_id = db.Column(db.String(128), nullable=True)
 
+    #relacja: jeden użytkownik może mieć wiele wpisów w tabeli BoltEarnings
+    earnings = db.relationship("BoltEarnings", backref="user", lazy=True)
+
+    #metody do obsługi haseł
     def set_password(self, password):
+        """
+        Ustawia hash hasła dla użytkownika.
+        """
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        """
+        Sprawdza poprawność podanego hasła.
+        """
         return check_password_hash(self.password_hash, password)
     
     def __repr__(self):
         return f'<User {self.username} ({self.role})>'
-    
+
+
+
+##########################
+###   MODEL ZAROBKÓW BOLT
+##########################
 
 class BoltEarnings(db.Model):
+    """
+    Model przechowujący dane o zarobkach z platformy Bolt
+    Pola:
+    - user_id: powiązanie z użytkownikiem (User)
+    - bolt_id: identyfikator kierowcy Bolt
+    - report_date: data raportu (pochodząca z nazwy pliku CSV)
+    - gross_total: zarobki brutto (ogółem)
+    - expenses_total: opłaty ogółem
+    - net_income: zarobki netto
+    - cash collected: pobrana gotówka
+    - vat_due: należny vat (wyliczany według wzoru)
+    - actual_income: faktyczny zarobek - net_income - vat_due
+    """
     id = db.Column(db.Integer, primary_key=True)
 
-    #relacja do tabeli User
+    #relacja z tabelą User
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    user = db.relationship("User", backref="bolt_earnings")
-
-    #dodatkowe info
     bolt_id = db.Column(db.String(128), nullable=False)
 
     #dane z CSV (dzienny snapshot)
@@ -36,9 +74,11 @@ class BoltEarnings(db.Model):
     expenses_total = db.Column(db.Float, nullable=False) # opłaty ogółem
     net_income = db.Column(db.Float, nullable=False) #Zarobki netto, po odjęciu prowizji
     cash_collected = db.Column(db.Float, nullable=False) # pobrana gótówka
+
+    #wartości liczone z danych z pliku csv
     vat_due = db.Column(db.Float, nullable=False) #należny vat
     actual_income = db.Column(db.Float, nullable=False) #rzeczywisty zarobek
 
     def __repr__(self):
-        return f"<Bolt Earnings {self.report_date} user={self.user_id}"
+        return f"<Bolt Earnings {self.user_id} {self.report_date}>"
     

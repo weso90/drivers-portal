@@ -8,9 +8,30 @@ from datetime import datetime
 import pandas as pd
 import re
 
+##########################
+###   FUNKCJE POMOCNICZE
+##########################
+
+def _extract_date_from_filename(filename: str):
+    """
+    Wyszukuje pierwczą datę w nazwie pliku CSV w formacie DD_MM_RRRR
+    Jeśli nie znajdzie to zwraca dzisiejszą datę
+    """
+    m = re.search(r"\d{2}_\d{2}_\d{4}", filename or "")
+    if not m:
+        return datetime.utcnow().date()
+    return datetime.strptime(m.group(), "%d_%m_%Y").date()
+
+
+##########################
+###   ADMIN ROUTES
+##########################
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
+    """
+    Logowanie administratora
+    """
     #jeżeli administrator jest już zalogowany, przenieś go do strony admin_dashboard
     if current_user.is_authenticated and current_user.role == 'admin':
         return redirect(url_for('admin_dashboard'))
@@ -33,9 +54,13 @@ def admin_login():
     return render_template('admin/login.html')
 
 
+
 @app.route('/admin/dashboard')
-@login_required # wymagane zalogowanie do wejścia na stronę
+@login_required
 def admin_dashboard():
+    """
+    Panel administratora
+    """
     #jeżeli nie loguje się administrator to przekierowanie na stronę admin_login
     if current_user.role != 'admin':
         flash('Brak uprawnień administratora', 'danger')
@@ -45,9 +70,13 @@ def admin_dashboard():
     return render_template('admin/dashboard.html', drivers=drivers)
 
 
+
 @app.route('/admin/add_driver', methods=['GET', 'POST'])
 @login_required
 def add_driver():
+    """
+    Formularz dodawania nowego kierowcy przez administratora
+    """
     if current_user.role != 'admin':
         flash('Brak uprawnień administratora', 'danger')
         return redirect(url_for('admin_login'))
@@ -68,49 +97,19 @@ def add_driver():
     
     return render_template('admin/add_driver.html', form=form)
 
-@app.route('/', methods=['GET', 'POST'])
-@app.route('/login', methods=['GET', 'POST'])
-def driver_login():
-    if current_user.is_authenticated:
-        if current_user.role == 'admin':
-            return redirect(url_for('admin_dashboard'))
-        elif current_user.role == 'driver':
-            return redirect(url_for('driver_dashboard'))
-        
-    form = DriverLoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
 
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            if user.role == 'admin':
-                return redirect(url_for('admin_dashboard'))
-            else:
-                return redirect(url_for('driver_dashboard'))
-        else:
-            flash('Nieprawidłowe dane logowania', 'danger')
-
-    return render_template('driver/login.html', form=form)
-
-@app.route('/dashboard')
-@login_required
-def driver_dashboard():
-    if current_user.role != 'driver':
-        flash('Brak uprawnień.', 'danger')
-        return redirect(url_for('driver_login'))
-    
-    return render_template('driver/dashboard.html', driver=current_user)
-
-def _extract_date_from_filename(filename: str):
-    m = re.search(r"\d{2}_\d{2}_\d{4}", filename or "")
-    if not m:
-        #fallback:dzisiejsza data
-        return datetime.utcnow().date()
-    return datetime.strptime(m.group(), "%d_%m_%Y").date()
 
 @app.route('/admin/upload-csv', methods=['GET', 'POST'])
 @login_required
 def upload_csv():
+    """
+    Import danych o zarobkach kierowców z platformy bolt z pliku CSV.
+    Obsługuje:
+    - wczytanie pliku
+    - mapowanie kolumn
+    - obliczanie VAT i faktycznego zarobku
+    - zapis/aktualizację rekordów w bazie
+    """
     if current_user.role != 'admin':
         flash('Brak uprawnień administratora', 'danger')
         return redirect(url_for('admin_login'))
@@ -218,9 +217,65 @@ def upload_csv():
     return render_template('admin/upload_csv.html', form=form)
 
 
+
+##########################
+###   DRIVER ROUTES
+##########################
+
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
+def driver_login():
+    """
+    Logowanie kierowcy
+    """
+    if current_user.is_authenticated:
+        if current_user.role == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        elif current_user.role == 'driver':
+            return redirect(url_for('driver_dashboard'))
+        
+    form = DriverLoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            if user.role == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('driver_dashboard'))
+        else:
+            flash('Nieprawidłowe dane logowania', 'danger')
+
+    return render_template('driver/login.html', form=form)
+
+
+
+@app.route('/dashboard')
+@login_required
+def driver_dashboard():
+    """
+    Prosty panel kierowcy - do rozbudowy
+    """
+    if current_user.role != 'driver':
+        flash('Brak uprawnień.', 'danger')
+        return redirect(url_for('driver_login'))
+    
+    return render_template('driver/dashboard.html', driver=current_user)
+
+
+
+##########################
+###   WYLOGOWYWANIE
+##########################
+
 @app.route('/logout')
 @login_required
 def logout():
+    """
+    Wylogowywanie użytkownika - admina lub kierowcy
+    użyte Flask-Login
+    """
     logout_user()
     flash('Zostałeś poprawnie wylogowany', 'info')
     return redirect(url_for('driver_login'))

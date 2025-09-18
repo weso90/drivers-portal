@@ -4,14 +4,20 @@ from app import db
 from app.models import User
 
 
-#utworzenie konta administratora za pomocą komendy:
-    #flask create-admin nazwa-administratora hasło-administratora
+##########################
+###   KOMENDY CLI - w konsoli
+##########################
     
 @app.cli.command("create-admin")
 @click.argument("username")
 @click.argument("password")
 def create_admin(username, password):
-    """Tworzy nowego administratora."""
+    """
+    Tworzy nowego użytkownika z rolą administratora
+    Użycie za pomocą komendy:
+        flask create-admin LOGIN HASŁO
+        (przykład: flask create-admin adminuser 123321)
+    """
     if User.query.filter_by(username=username).first():
         print(f"Użytkownik {username} już istnieje.")
         return
