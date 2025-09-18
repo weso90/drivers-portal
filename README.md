@@ -27,19 +27,6 @@ Projekt powstał jako nauka i jednocześnie demo do portfolio oraz jako wartoś�
   - oddzielne widoki dla admina i kierowcy
 - Hasła przechowywane w postaci hashy (Werkzeug)
 
-## Struktura projektu
-drivers-portal/
-│── run.py # punkt startowy aplikacji
-│── requirements.txt # zależności
-│── app/
-│ ├── init.py # konfiguracja aplikacji, bazy, logowania
-│ ├── models.py # modele bazy danych (User, BoltEarnings)
-│ ├── routes.py # trasy aplikacji (admin, kierowcy, CSV upload)
-│ ├── forms.py # formularze (login, dodanie kierowcy, CSV upload)
-│ ├── commands.py # dodatkowe komendy CLI (np. create-admin)
-│ ├── templates/ # szablony HTML (admin/, driver/, base.html)
-│ └── app.db # baza danych SQLite (lokalnie)
-
 ## Jak uruchomić
  --- DO UZUPEŁNIENIA ---
 
