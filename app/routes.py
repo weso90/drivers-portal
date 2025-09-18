@@ -88,7 +88,7 @@ def driver_login():
             else:
                 return redirect(url_for('driver_dashboard'))
         else:
-            flash('Nieprawidłowe dane logowania', form=form)
+            flash('Nieprawidłowe dane logowania', 'danger')
 
     return render_template('driver/login.html', form=form)
 
