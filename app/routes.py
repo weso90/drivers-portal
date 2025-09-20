@@ -27,34 +27,6 @@ def _extract_date_from_filename(filename: str):
 ###   ADMIN ROUTES
 ##########################
 
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    """
-    Logowanie administratora
-    """
-    #jeżeli administrator jest już zalogowany, przenieś go do strony admin_dashboard
-    if current_user.is_authenticated and current_user.role == 'admin':
-        return redirect(url_for('admin_dashboard'))
-    
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-
-        user = User.query.filter_by(username=username).first()
-
-        #sprawdzamy po wprowadzeniu danych do formularza czy użytkownik istnieje, hasło się zgadza i czy ma rolę admin
-        if user and user.check_password(password) and user.role == 'admin':
-            login_user(user) #funkcja z Flask-Login do zalogowania użytkownika
-            flash('Zalogowano pomyślnie', 'success')
-            return redirect(url_for('admin_dashboard'))
-        else:
-            flash('Nieprawidłowe dane bądź brak uprawnień', 'danger')
-            return redirect(url_for('admin_login'))
-        
-    return render_template('admin/login.html')
-
-
-
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
@@ -64,7 +36,7 @@ def admin_dashboard():
     #jeżeli nie loguje się administrator to przekierowanie na stronę admin_login
     if current_user.role != 'admin':
         flash('Brak uprawnień administratora', 'danger')
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('login_panel'))
     
     drivers = User.query.filter_by(role='driver').all()
     return render_template('admin/dashboard.html', drivers=drivers)
@@ -79,7 +51,7 @@ def add_driver():
     """
     if current_user.role != 'admin':
         flash('Brak uprawnień administratora', 'danger')
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('login_panel'))
     
     form = AddDriverForm()
     if form.validate_on_submit():
@@ -112,7 +84,7 @@ def upload_csv():
     """
     if current_user.role != 'admin':
         flash('Brak uprawnień administratora', 'danger')
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('login_panel'))
     
     form = CSVUploadForm()
     if request.method == 'POST' and form.validate_on_submit():
@@ -222,11 +194,29 @@ def upload_csv():
 ###   DRIVER ROUTES
 ##########################
 
+@app.route('/dashboard')
+@login_required
+def driver_dashboard():
+    """
+    Prosty panel kierowcy - do rozbudowy
+    """
+    if current_user.role != 'driver':
+        flash('Brak uprawnień.', 'danger')
+        return redirect(url_for('login_panel'))
+    
+    return render_template('driver/dashboard.html', driver=current_user)
+
+
+
+##########################
+###   LOGOWANIE I WYLOGOWYWANIE
+##########################
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/login', methods=['GET', 'POST'])
-def driver_login():
+def login_panel():
     """
-    Logowanie kierowcy
+    Panel logowania
     """
     if current_user.is_authenticated:
         if current_user.role == 'admin':
@@ -247,27 +237,7 @@ def driver_login():
         else:
             flash('Nieprawidłowe dane logowania', 'danger')
 
-    return render_template('driver/login.html', form=form)
-
-
-
-@app.route('/dashboard')
-@login_required
-def driver_dashboard():
-    """
-    Prosty panel kierowcy - do rozbudowy
-    """
-    if current_user.role != 'driver':
-        flash('Brak uprawnień.', 'danger')
-        return redirect(url_for('driver_login'))
-    
-    return render_template('driver/dashboard.html', driver=current_user)
-
-
-
-##########################
-###   WYLOGOWYWANIE
-##########################
+    return render_template('login.html', form=form)
 
 @app.route('/logout')
 @login_required
@@ -278,4 +248,4 @@ def logout():
     """
     logout_user()
     flash('Zostałeś poprawnie wylogowany', 'info')
-    return redirect(url_for('driver_login'))
+    return redirect(url_for('login_panel'))

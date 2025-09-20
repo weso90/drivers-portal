@@ -31,14 +31,14 @@ Projekt powstał jako nauka i jednocześnie demo do portfolio oraz jako wartoś�
  --- DO UZUPEŁNIENIA ---
 
 ## Technologie
-Python 3.11+
-Flask
-Flask-Login
-Flask-Migrate / Alembic
-SQLAlchemy
-WTForms
-Bootstrap 5
-Pandas (import CSV)
+- Python 3.11+
+- Flask
+- Flask-Login
+- Flask-Migrate / Alembic
+- SQLAlchemy
+- WTForms
+- Bootstrap 5
+- Pandas (import CSV)
 
 ## Historia zmian
 Szczegóły w pliku [CHANGELOG.md](CHANGELOG.md).

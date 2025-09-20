@@ -3,6 +3,15 @@
 Wszystkie istotne zmiany w tym projekcie będą dokumentowane w tym pliku.
 
 
+
+
+
+---
+
+## [0.21] - 2025-09-18
+### Zmienione
+- usunięte stare pliki login (admin/driver) - zastąpione jednym wspólnym
+
 ---
 
 ## [0.2] - 2025-09-18
