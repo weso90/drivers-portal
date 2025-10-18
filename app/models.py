@@ -70,15 +70,14 @@ class BoltEarnings(db.Model):
 
     #dane z CSV (dzienny snapshot)
     report_date = db.Column(db.Date, nullable=False)
-    gross_total = db.Column(db.Float, nullable=False) #zarobki ogółem
-    expenses_total = db.Column(db.Float, nullable=False) # opłaty ogółem
-    net_income = db.Column(db.Float, nullable=False) #Zarobki netto, po odjęciu prowizji
-    cash_collected = db.Column(db.Float, nullable=False) # pobrana gótówka
+    gross_total = db.Column(db.Numeric(10, 2), nullable=False) #zarobki ogółem
+    expenses_total = db.Column(db.Numeric(10, 2), nullable=False) # opłaty ogółem
+    net_income = db.Column(db.Numeric(10, 2), nullable=False) #Zarobki netto, po odjęciu prowizji
+    cash_collected = db.Column(db.Numeric(10, 2), nullable=False) # pobrana gótówka
 
     #wartości liczone z danych z pliku csv
-    vat_due = db.Column(db.Float, nullable=False) #należny vat
-    actual_income = db.Column(db.Float, nullable=False) #rzeczywisty zarobek
+    vat_due = db.Column(db.Numeric(10, 2), nullable=False) #należny vat
+    actual_income = db.Column(db.Numeric(10, 2), nullable=False) #rzeczywisty zarobek
 
     def __repr__(self):
         return f"<Bolt Earnings {self.user_id} {self.report_date}>"
-    

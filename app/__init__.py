@@ -33,7 +33,9 @@ def create_app():
 
     #konfiguracja aplikacji
 
-    app.config['SECRET_KEY'] = 'sekretny-klucz' # sekretny klucz do obsługi sesji - DO ZMIANY W WERSJI PRODUKCYJNEJ!!!!!!
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    if not app.config['SECRET_KEY']:
+        raise ValueError("SECRET_KEY nie został ustawiony!")
 
     #Konfiguracja bazy danych SQLite
     basedir = os.path.abspath(os.path.dirname(__file__))

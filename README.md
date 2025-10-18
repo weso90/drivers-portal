@@ -5,7 +5,7 @@ Projekt powstał jako nauka i jednocześnie demo do portfolio oraz jako wartoś�
 
 ## Status projektu
 
-- Aktualna wersja: **0.21**
+- Aktualna wersja: **0.22**
 - Wersja MVP z panelem admina i importem CSV działa.
 - W planach:
   - integracja z Uber - jeszcze nie wiem czy api czy import csv

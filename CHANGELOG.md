@@ -8,6 +8,13 @@ Wszystkie istotne zmiany w tym projekcie będą dokumentowane w tym pliku.
 
 ---
 
+## [0.22] - 2025-10-18
+### Zmienione
+- wrażliwe dane przeniesione do pliku .env
+- zmiana danych w sql z float na numeric
+
+---
+
 ## [0.21] - 2025-09-20
 ### Zmienione
 - usunięte stare pliki login (admin/driver) - zastąpione jednym wspólnym
