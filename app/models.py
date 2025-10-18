@@ -24,7 +24,8 @@ class User(UserMixin, db.Model):
     bolt_id = db.Column(db.String(128), nullable=True)
 
     #relacja: jeden użytkownik może mieć wiele wpisów w tabeli BoltEarnings
-    earnings = db.relationship("BoltEarnings", backref="user", lazy=True)
+    bolt_earnings = db.relationship("BoltEarnings", backref="user", lazy=True)
+    uber_earnings = db.relationship("UberEarnings", backref="user", lazy=True)
 
     #metody do obsługi haseł
     def set_password(self, password):
@@ -58,7 +59,7 @@ class BoltEarnings(db.Model):
     - gross_total: zarobki brutto (ogółem)
     - expenses_total: opłaty ogółem
     - net_income: zarobki netto
-    - cash collected: pobrana gotówka
+    - cash_collected: pobrana gotówka
     - vat_due: należny vat (wyliczany według wzoru)
     - actual_income: faktyczny zarobek - net_income - vat_due
     """
@@ -70,14 +71,55 @@ class BoltEarnings(db.Model):
 
     #dane z CSV (dzienny snapshot)
     report_date = db.Column(db.Date, nullable=False)
-    gross_total = db.Column(db.Numeric(10, 2), nullable=False) #zarobki ogółem
-    expenses_total = db.Column(db.Numeric(10, 2), nullable=False) # opłaty ogółem
-    net_income = db.Column(db.Numeric(10, 2), nullable=False) #Zarobki netto, po odjęciu prowizji
-    cash_collected = db.Column(db.Numeric(10, 2), nullable=False) # pobrana gótówka
+    gross_total = db.Column(db.Numeric(10, 2), nullable=False, default=0) #zarobki ogółem
+    expenses_total = db.Column(db.Numeric(10, 2), nullable=False, default=0) # opłaty ogółem
+    net_income = db.Column(db.Numeric(10, 2), nullable=False, default=0) #Zarobki netto, po odjęciu prowizji
+    cash_collected = db.Column(db.Numeric(10, 2), nullable=False, default=0) # pobrana gótówka
 
     #wartości liczone z danych z pliku csv
-    vat_due = db.Column(db.Numeric(10, 2), nullable=False) #należny vat
-    actual_income = db.Column(db.Numeric(10, 2), nullable=False) #rzeczywisty zarobek
+    vat_due = db.Column(db.Numeric(10, 2), nullable=False, default=0) #należny vat
+    actual_income = db.Column(db.Numeric(10, 2), nullable=False, default=0) #rzeczywisty zarobek
 
     def __repr__(self):
         return f"<Bolt Earnings {self.user_id} {self.report_date}>"
+    
+
+##########################
+###   MODEL ZAROBKÓW UBER
+##########################
+
+class UberEarnings(db.Model):
+    """
+    Model przechowujący dane o zarobkach z platformy Uber
+    Pola:
+    - user_id: powiązanie z użytkownikiem (User)
+    - uber_id: identyfikator kierowcy Bolt
+    - report_date: data raportu (pochodząca z nazwy pliku CSV)
+    - gross_total: zarobki brutto (ogółem)
+    - expenses_total: opłaty ogółem
+    - net_income: zarobki netto
+    - cash_collected: pobrana gotówka
+    - vat_due: należny vat (wyliczany według wzoru)
+    - actual_income: faktyczny zarobek - net_income - vat_due
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    #relacja z tabelą User
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    uber_id = db.Column(db.String(128), nullable=False)
+
+    #dane z CSV (dzienny snapshot)
+    report_date = db.Column(db.Date, nullable=False)
+    gross_total = db.Column(db.Numeric(10, 2), nullable=False, default=0) #zarobki ogółem
+    expenses_total = db.Column(db.Numeric(10, 2), nullable=False, default=0) # opłaty ogółem
+    net_income = db.Column(db.Numeric(10, 2), nullable=False, default=0) #Zarobki netto, po odjęciu prowizji
+    cash_collected = db.Column(db.Numeric(10, 2), nullable=False, default=0) # pobrana gótówka
+
+    #wartości liczone z danych z pliku csv
+    vat_due = db.Column(db.Numeric(10, 2), nullable=False, default=0) #należny vat
+    actual_income = db.Column(db.Numeric(10, 2), nullable=False, default=0) #rzeczywisty zarobek
+
+    def __repr__(self):
+        return f"<Uber Earnings {self.user_id} {self.report_date}>"
+    
+    
