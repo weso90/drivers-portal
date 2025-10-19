@@ -2,11 +2,17 @@
 
 Wszystkie istotne zmiany w tym projekcie będą dokumentowane w tym pliku.
 
+---
 
 
-
+## [0.3] - 2025-10-19
+### Zmienione
+- dodanie importu danych z pliku CSV Ubera
+- Dodanie widoku zarobków dla administratora
+- wybieranie zakresu dat do zarobków
 
 ---
+
 
 ## [0.22] - 2025-10-18
 ### Zmienione

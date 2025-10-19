@@ -1,18 +1,12 @@
 # Drivers Portal
 
 Portal flotowy dla kierowców Uber i Bolt, napisany w Pythonie (Flask).  
-Projekt powstał jako nauka i jednocześnie demo do portfolio oraz jako wartość użytkowa przy prowadzeniu działalności gospodarczej
+Projekt powstał jako pomoc przy rozliczaniu kierowców w prowadzonej działalności gospodarczej oraz jako projekt portfolio.
 
 ## Status projektu
 
-- Aktualna wersja: **0.22**
+- Aktualna wersja: **0.3**
 - Wersja MVP z panelem admina i importem CSV działa.
-- W planach:
-  - integracja z Uber - jeszcze nie wiem czy api czy import csv
-  - rozbudowa panelu administratora i kierowcy
-  - dodanie możliwości edycji i usuwania użytkownika
-  - możliwość dodawania faktur kosztowych kierowcy w celu obniżenia vatu
-  - tworzenie raportów tygodniowych na podstawie rozliczeń
 
 ## Funkcjonalności
 
@@ -26,6 +20,13 @@ Projekt powstał jako nauka i jednocześnie demo do portfolio oraz jako wartoś�
   - wspólny layout `base.html`
   - oddzielne widoki dla admina i kierowcy
 - Hasła przechowywane w postaci hashy (Werkzeug)
+
+## W planach
+
+  - rozbudowa panelu administratora i kierowcy
+  - dodanie możliwości edycji i usuwania użytkownika
+  - możliwość dodawania faktur kosztowych kierowcy w celu obniżenia vatu
+  - tworzenie raportów tygodniowych na podstawie rozliczeń
 
 ## Jak uruchomić
  --- DO UZUPEŁNIENIA ---
