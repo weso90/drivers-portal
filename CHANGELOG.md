@@ -4,6 +4,12 @@ Wszystkie istotne zmiany w tym projekcie będą dokumentowane w tym pliku.
 
 ---
 
+## [0.4] - 2025-10-21
+### Dodane
+- możliwość dodawania faktur kosztowych kierowcy w celu obniżenia vatu
+
+---
+
 
 ## [0.3] - 2025-10-19
 ### Dodane

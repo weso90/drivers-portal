@@ -5,8 +5,8 @@ Projekt powstał jako pomoc przy rozliczaniu kierowców w prowadzonej działalno
 
 ## Status projektu
 
-- Aktualna wersja: **0.3**
-- Wersja MVP z panelem admina i importem CSV działa.
+- Aktualna wersja: **0.4**
+- Wersja MVP z panelem admina, importem CSV działa i dodawaniem faktur kosztowych
 
 ## Funkcjonalności
 
@@ -20,12 +20,12 @@ Projekt powstał jako pomoc przy rozliczaniu kierowców w prowadzonej działalno
   - wspólny layout `base.html`
   - oddzielne widoki dla admina i kierowcy
 - Hasła przechowywane w postaci hashy (Werkzeug)
+- możliwość dodawania faktur kosztowych kierowcy w celu obniżenia vatu
 
 ## W planach
 
   - rozbudowa panelu administratora i kierowcy
   - dodanie możliwości edycji i usuwania użytkownika
-  - możliwość dodawania faktur kosztowych kierowcy w celu obniżenia vatu
   - tworzenie raportów tygodniowych na podstawie rozliczeń
 
 ## Jak uruchomić
