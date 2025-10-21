@@ -2,8 +2,8 @@ from flask import render_template, request, flash, redirect, url_for
 from flask import current_app as app
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import User, BoltEarnings, UberEarnings
-from app.forms import AddDriverForm, DriverLoginForm, CSVUploadForm
+from app.models import User, BoltEarnings, UberEarnings, Expense
+from app.forms import AddDriverForm, DriverLoginForm, CSVUploadForm, AddExpenseForm
 from datetime import datetime
 import pandas as pd
 import re
@@ -117,6 +117,14 @@ def driver_earnings(driver_id):
         uber_query = uber_query.filter(UberEarnings.report_date <= date_to)
     uber_earnings = uber_query.order_by(UberEarnings.report_date.desc()).all()
 
+    # Query dla faktur kosztowych
+    expenses_query = Expense.query.filter_by(user_id=driver_id)
+    if date_from:
+        expenses_query = expenses_query.filter(Expense.issue_date >= date_from)
+    if date_to:
+        expenses_query = expenses_query.filter(Expense.issue_date <= date_to)
+    expenses = expenses_query.order_by(Expense.issue_date.desc()).all()
+
     #oblicz sumy
     bolt_total = {
         'gross': sum(float(e.gross_total) for e in bolt_earnings),
@@ -132,6 +140,14 @@ def driver_earnings(driver_id):
         'actual': sum(float(e.actual_income) for e in uber_earnings),
     }
 
+    # Suma faktur kosztowych
+    expenses_total = {
+        'net': sum(float(e.net_amount) for e in expenses),
+        'vat': sum(float(e.vat_amount) for e in expenses),
+        'vat_deductible': sum(float(e.vat_deductible) for e in expenses),
+        'deductible': sum(float(e.deductible_amount) for e in expenses),
+    }
+
     return render_template(
         'admin/driver_earnings.html',
         driver=driver,
@@ -139,6 +155,8 @@ def driver_earnings(driver_id):
         uber_earnings=uber_earnings,
         bolt_total=bolt_total,
         uber_total=uber_total,
+        expenses=expenses,
+        expenses_total=expenses_total,
         date_from=date_from,
         date_to=date_to
     )
@@ -385,6 +403,69 @@ def upload_uber_csv():
     
     return render_template('admin/upload_uber_csv.html', form=form)
 
+@app.route('/admin/add-expense', methods=['GET', 'POST'])
+@login_required
+def add_expense():
+    """
+    Formularz dodawania faktury kosztowej przez administratora.
+    Oblicza automatycznie:
+    -vat_deductible = vat_amount / 2
+    -deductible_amount = net_amount * 0.75
+    """
+    if current_user.role != 'admin':
+        flash('Brak uprawnień administratora', 'danger')
+        return redirect(url_for('login_panel'))
+    
+    form = AddExpenseForm()
+
+    #wypełnij listę kierowców w SelectField
+    drivers = User.query.filter_by(role='driver').all()
+    form.driver_id.choices = [(d.id, d.username) for d in drivers]
+
+    if form.validate_on_submit():
+        #oblicz automatyczne wartości
+        vat_deductible = float(form.vat_amount.data) / 2
+        deductible_amount = float(form.net_amount.data) * 0.75
+
+        #obsługa uploadu zdjęcia
+        filename = None
+        if form.image.data:
+            from werkzeug.utils import secure_filename
+            import os
+
+            file = form.image.data
+            filename = secure_filename(file.filename)
+
+            #dodaj timestamp do nazwy pliku (unikalne nazwy)
+            from datetime import datetime
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{timestamp}_{filename}"
+
+            #zapisz plik
+            upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+
+        #stwórz rekord faktury
+        expense = Expense(
+            user_id=form.driver_id.data,
+            document_number=form.document_number.data,
+            description=form.description.data,
+            issue_date=form.issue_date.data,
+            net_amount=form.net_amount.data,
+            vat_amount=form.vat_amount.data,
+            vat_deductible=vat_deductible,
+            deductible_amount=deductible_amount,
+            image_filename=filename
+        )
+
+        db.session.add(expense)
+        db.session.commit()
+
+        flash(f'Faktura {expense.document_number} została dodana', 'success')
+        return redirect(url_for('admin_dashboard'))
+    return render_template('admin/add_expense.html', form=form)
+
 
 
 ##########################
@@ -446,3 +527,5 @@ def logout():
     logout_user()
     flash('Zostałeś poprawnie wylogowany', 'info')
     return redirect(url_for('login_panel'))
+
+

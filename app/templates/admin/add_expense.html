@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Dodaj fakturę kosztową{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Dodaj fakturę kosztową</h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Powrót do panelu</a>
+  </div>
+  <hr>
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+              {{ form.driver_id.label(class="form-label") }}
+              {{ form.driver_id(class="form-select") }}
+              {% if form.driver_id.errors %}
+                <div class="text-danger">{{ form.driver_id.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.document_number.label(class="form-label") }}
+              {{ form.document_number(class="form-control", placeholder="np. FV/2025/10/001") }}
+              {% if form.document_number.errors %}
+                <div class="text-danger">{{ form.document_number.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.description.label(class="form-label") }}
+              {{ form.description(class="form-control", rows="3", placeholder="np. Paliwo, Myjnia, Serwis") }}
+              {% if form.description.errors %}
+                <div class="text-danger">{{ form.description.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.issue_date.label(class="form-label") }}
+              {{ form.issue_date(class="form-control") }}
+              <small class="text-muted">Maksymalnie 7 dni wstecz</small>
+              {% if form.issue_date.errors %}
+                <div class="text-danger">{{ form.issue_date.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                {{ form.net_amount.label(class="form-label") }}
+                {{ form.net_amount(class="form-control", step="0.01", placeholder="0.00") }}
+                {% if form.net_amount.errors %}
+                  <div class="text-danger">{{ form.net_amount.errors[0] }}</div>
+                {% endif %}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                {{ form.vat_amount.label(class="form-label") }}
+                {{ form.vat_amount(class="form-control", step="0.01", placeholder="0.00") }}
+                {% if form.vat_amount.errors %}
+                  <div class="text-danger">{{ form.vat_amount.errors[0] }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              {{ form.image.label(class="form-label") }}
+              {{ form.image(class="form-control") }}
+              <small class="text-muted">Zdjęcie faktury (JPG, PNG, PDF - opcjonalne)</small>
+              {% if form.image.errors %}
+                <div class="text-danger">{{ form.image.errors[0] }}</div>
+              {% endif %}
+            </div>
+
+            <div class="alert alert-info">
+              <strong>Automatyczne obliczenia:</strong>
+              <ul class="mb-0">
+                <li>VAT do odliczenia: 50% kwoty VAT</li>
+                <li>Kwota do odliczenia: 75% kwoty netto</li>
+              </ul>
+            </div>
+
+            {{ form.submit(class="btn btn-success btn-lg w-100") }}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

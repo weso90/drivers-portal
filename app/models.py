@@ -1,6 +1,8 @@
 from app import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from decimal import Decimal
+from datetime import datetime
 
 ##########################
 ###   MODEL UŻYTKOWNIKA
@@ -122,4 +124,54 @@ class UberEarnings(db.Model):
     def __repr__(self):
         return f"<Uber Earnings {self.user_id} {self.report_date}>"
     
+##########################
+###   MODEL FAKTUR KOSZTOWYCH
+##########################
+
+class Expense(db.Model):
+    """
+    Model przechowujący faktury kosztowe kierowców (do odliczenia VAT)
+    Pola:
+    - user_id: powiązanie z użytkownikiem (kierowcą)
+    - document_number: numer faktury/dokumentu
+    - description: za co jest faktura (np. "paliwo", "myjnia")
+    - issue_date: data wystawienia faktury
+    - net_amount: kwota netto z faktury (wpisywana ręcznie)
+    - vat_amount: kwota VAT z faktury (wpisywana ręcznie)
+    - vat_deductible: VAT do odliczenia = vat_amount / 2 (obliczane automatycznie)
+    - deductible_amount: kwota do odliczenia = 75% netto (obliczane automatycznie)
+    - image_filename: nazwa pliku ze zdjęciem faktury
+    - created_at: kiedy dodano do systemu (automatycznie)
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    #relacja z użytkownikiem (kierowcą)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    #dane faktury
+    document_number = db.Column(db.String(128), nullable=False)
+    description = db.Column(db.String(256), nullable=False)
+    issue_date = db.Column(db.Date, nullable=False)
+
+    #kwoty
+    net_amount = db.Column(db.Numeric(10, 2), nullable=False) # netto z faktury
+    vat_amount = db.Column(db.Numeric(10, 2), nullable=False) # vat z faktury
+    vat_deductible = db.Column(db.Numeric(10, 2), nullable=False) # vat do odliczenia
+    deductible_amount = db.Column(db.Numeric(10, 2), nullable=False) # 75% netto do odliczenia
+
+    #zdjęcie faktury
+    image_filename = db.Column(db.String(256), nullable=True)
+
+    #metadata
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Wydatek {self.document_number} user_id={self.user_id} vatdeductible={self.vat.deductible}>"
     
+    @property
+    def gross_amount(self):
+        """
+        Kwota brutto netto + vat
+        """
+        return self.net_amount + self.vat_amount
