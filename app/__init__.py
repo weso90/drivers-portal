@@ -23,24 +23,41 @@ login_manager.login_view = 'login_panel'
 login_manager.login_message = 'Strona wymaga logowania'
 login_manager.login_message_category = 'warning'
 
-def create_app():
+def create_app(config_name='development'):
     """
     Funkcja fabrykująca aplikację Flask.
     Tworzy i konfiguruje instancję aplikacji wraz z rozszerzeniami.
+
+    Args:
+        config_name: 'development', 'testing' lub 'production'
     """
     app = Flask(__name__)
 
+    # Wczytaj konfigurację
+    if config_name == 'testing':
+        from config import TestingConfig
+        app.config.from_object(TestingConfig)
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    else:
+        # Development/Production - wymaga SECRET_KEY z .env
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+        if not app.config['SECRET_KEY']:
+            raise ValueError("SECRET_KEY nie został ustawiony! Dodaj go do pliku .env")
+        
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        database_uri = os.environ.get('DATABASE-URI', 'sqlite:///app.db')
+        if database_uri.startswith('sqlite:///') and not database_uri.startswith('sqlite:////'):
+            db_path = database_uri.replace('sqlite:///', '')
+            database_uri = 'sqlite:///' + os.path.join(basedir, db_path)
+        
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    #konfiguracja aplikacji
+        app.config['MAX_CONTENT_LENGTH'] = int(os.environ.get('MAX_CONTENT_LENGTH', 16777216))
+        app.config['UPLOAD_FOLDER'] = os.path.join(basedir, '..', os.environ.get('UPLOAD_FOLDER', 'uploads'))
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-    if not app.config['SECRET_KEY']:
-        raise ValueError("SECRET_KEY nie został ustawiony!")
 
-    #Konfiguracja bazy danych SQLite
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     #powiązanie obiektów z aplikacją
     db.init_app(app)
