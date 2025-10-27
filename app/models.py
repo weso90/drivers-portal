@@ -28,6 +28,7 @@ class User(UserMixin, db.Model):
     #relacja: jeden użytkownik może mieć wiele wpisów w tabeli BoltEarnings
     bolt_earnings = db.relationship("BoltEarnings", backref="user", lazy=True)
     uber_earnings = db.relationship("UberEarnings", backref="user", lazy=True)
+    expenses = db.relationship("Expense", backref="user", lazy=True)
 
     #metody do obsługi haseł
     def set_password(self, password):
@@ -167,7 +168,7 @@ class Expense(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<Wydatek {self.document_number} user_id={self.user_id} vatdeductible={self.vat.deductible}>"
+        return f"<Wydatek {self.document_number} user_id={self.user_id} vat_deductible={self.vat.deductible}>"
     
     @property
     def gross_amount(self):

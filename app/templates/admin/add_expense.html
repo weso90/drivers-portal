@@ -43,7 +43,7 @@
             <div class="mb-3">
               {{ form.issue_date.label(class="form-label") }}
               {{ form.issue_date(class="form-control") }}
-              <small class="text-muted">Maksymalnie 7 dni wstecz</small>
+              <small class="text-muted">Maksymalnie 30 dni wstecz</small>
               {% if form.issue_date.errors %}
                 <div class="text-danger">{{ form.issue_date.errors[0] }}</div>
               {% endif %}

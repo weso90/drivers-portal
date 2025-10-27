@@ -78,7 +78,7 @@ def expense(app, driver_user):
     exp = Expense(
         user_id=driver_user.id,
         document_number='FV/2025/10/01',
-        desctiption='Paliwo',
+        description='Paliwo',
         issue_date=date.today(),
         net_amount=100.00,
         vat_amount=23.00,

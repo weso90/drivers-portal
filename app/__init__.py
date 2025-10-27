@@ -45,7 +45,7 @@ def create_app(config_name='development'):
             raise ValueError("SECRET_KEY nie został ustawiony! Dodaj go do pliku .env")
         
         basedir = os.path.abspath(os.path.dirname(__file__))
-        database_uri = os.environ.get('DATABASE-URI', 'sqlite:///app.db')
+        database_uri = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
         if database_uri.startswith('sqlite:///') and not database_uri.startswith('sqlite:////'):
             db_path = database_uri.replace('sqlite:///', '')
             database_uri = 'sqlite:///' + os.path.join(basedir, db_path)

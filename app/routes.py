@@ -27,7 +27,7 @@ def _extract_date_from_filename(filename: str):
         except ValueError:
             pass
     
-    m = re.search(r"(\d{2}_\{2}_\d{4})", filename or "")
+    m = re.search(r"(\d{2}_\d{2}_\d{4})", filename or "")
     if m:
         try:
             return datetime.strptime(m.group(1), "%d_%m_%Y").date()
@@ -299,7 +299,7 @@ def upload_uber_csv():
         
         #wczytaj CSV
         try:
-            df = pd.read_csv(file, sep=None, engine='python', encoding='uts-8-sig')
+            df = pd.read_csv(file, sep=None, engine='python', encoding='utf-8-sig')
         except Exception:
             file.seek(0)
             df = pd.read_csv(file, sep=',', engine='python', encoding='utf-8-sig')

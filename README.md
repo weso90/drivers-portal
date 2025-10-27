@@ -6,7 +6,7 @@ Projekt powstał jako pomoc przy rozliczaniu kierowców w prowadzonej działalno
 ## Status projektu
 
 - Aktualna wersja: **0.4**
-- Wersja MVP z panelem admina, importem CSV działa i dodawaniem faktur kosztowych
+- Wersja MVP z panelem admina, importem CSV i dodawaniem faktur kosztowych
 
 ## Funkcjonalności
 
