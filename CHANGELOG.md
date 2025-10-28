@@ -4,6 +4,17 @@ Wszystkie istotne zmiany w tym projekcie będą dokumentowane w tym pliku.
 
 ---
 
+
+## [0.41] - 2025-10-28
+### Zmienione
+- refactor kodu:
+ - stworzenie klasy CSVProcessor z auto detekcją czy to uber czy bolt na podstawie nazwy pliku
+ - konfigurowalne mapowanie kolumn zależnie od platformy
+ - łatwa rozbudowa o nowe platformy
+ - redukcja powtarzania kodu o około 70%
+
+---
+
 ## [0.4] - 2025-10-21
 ### Dodane
 - możliwość dodawania faktur kosztowych kierowcy w celu obniżenia vatu
