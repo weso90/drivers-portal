@@ -3,7 +3,7 @@
 {% block title %}Import CSV{% endblock %}
 
 {% block content %}
-  <h2 class="mb-4">Import zarobków Bolt (CSV)</h2>
+  <h2 class="mb-4">Import zarobków (Bolt / Uber)</h2>
 
   <form action="{{ url_for('upload_csv') }}" method="post" enctype="multipart/form-data" class="card p-3">
     {{ form.csrf_token }}

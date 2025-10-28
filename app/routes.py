@@ -165,17 +165,11 @@ def driver_earnings(driver_id):
 @login_required
 def upload_csv():
     """
-    Import danych o zarobkach kierowców z platformy bolt z pliku CSV.
-    Obsługuje:
-    - wczytanie pliku
-    - mapowanie kolumn
-    - obliczanie VAT i faktycznego zarobku
-    - zapis/aktualizację rekordów w bazie
+    Uniwersalny import CSV - automatycznie rozpoznaje platformę (Bolt/Uber).
     """
     if current_user.role != 'admin':
         flash('Brak uprawnień administratora', 'danger')
         return redirect(url_for('login_panel'))
-    
     form = CSVUploadForm()
     if request.method == 'POST' and form.validate_on_submit():
         file = form.file.data
@@ -183,225 +177,25 @@ def upload_csv():
             flash('Nie wybrano pliku', 'warning')
             return redirect(request.url)
         
-        #wczytaj CSV
         try:
-            df = pd.read_csv(file, sep=None, engine='python', encoding='utf-8-sig')
-        except Exception:
-            file.seek(0)
-            df = pd.read_csv(file, sep=',', engine='python', encoding='utf-8-sig')
+            # Automatyczne rozpoznanie i przetwarzania
+            from app.csv_processor import CSVProcessor
+            processor = CSVProcessor(file, file.filename)
+            result = processor.process()
 
-        #mapowanie kolumn
-        map_cols = {
-            "Kierowca": "driver_name",
-            "Identyfikator kierowcy": "bolt_id",
-            "Zarobki brutto (ogółem)|ZŁ": "gross_total",
-            "Opłaty ogółem|ZŁ": "expenses_total",
-            "Zarobki netto|ZŁ": "net_income",
-            "Pobrana gotówka|ZŁ": "cash_collected",
-            "Zarobki brutto (płatności w aplikacji)|ZŁ": "brutto_app",
-            "Zarobki brutto (płatności gotówkowe)|ZŁ": "brutto_cash",
-            "Zarobki z kampanii|ZŁ": "campaign",
-            "Zwroty wydatków|ZŁ": "refunds",
-            "Opłaty za anulowanie|ZŁ": "cancellations"
-        }
+            platform_name = 'Bolt' if result['platform'] == 'bolt' else 'Uber'
+            flash(
+                f"Zaimportowano {platform_name}: {result['created']} nowych, "
+                f"{result['updated']} zaktualizowanych, {result['skipped']} pominiętych",
+                "success"
+            )
+        except ValueError as e:
+            flash(f'Błąd: {str(e)}', 'danger')
+        except Exception as e:
+            flash(f'Błąd podczas importu: {str(e)}', 'danger')
 
-        present = [src for src in map_cols if src in df.columns]
-        df = df[present].copy()
-        df.rename(columns=map_cols, inplace=True)
-
-        #konsersja na liczby (float)
-        for c in ["gross_total", "expenses_total", "net_income", "cash_collected", "brutto_app", "brutto_cash", "campaign", "refunds", "cancellations"]:
-            if c in df.columns:
-                df[c] = df[c].astype(float)
-            else: df[c] = 0.0
-
-        #data raportu z nazwy pliku
-        report_date = _extract_date_from_filename(file.filename)
-        df["report_date"] = report_date
-
-        #zapis do bazy
-        created, updated, skipped = 0, 0, 0
-        for _, row in df.iterrows():
-            user = None
-            if "bolt_id" in row and str(row["bolt_id"]).strip() and str(row["bolt_id"]).lower() != "nan":
-                user = User.query.filter_by(bolt_id=str(row["bolt_id"]).strip()).first()
-            if user is None and "driver_name" in row and str(row["driver_name"]).strip():
-                user = User.query.filter_by(username=str(row["driver_name"]).strip()).first()
-            if user is None:
-                skipped += 1
-                continue
-
-            #Obliczanie vatu
-            vat_due = (
-                row.get("brutto_app", 0.0) * 0.08 +
-                row.get("brutto_cash", 0.0) * 0.08 +
-                row.get("campaign", 0.0) * 0.23 +
-                row.get("refunds", 0.0) * 0.23 +
-                row.get("cancellations", 0.0) * 0.23
-            ) - row.get("expenses_total", 0.0) * 0.23
-
-            net_income = float(row.get("net_income", 0.0))
-            actual_income = net_income - vat_due
-            existing = BoltEarnings.query.filter_by(user_id=user.id, report_date=report_date).first()
-            if existing is None:
-                rec = BoltEarnings(
-                    user_id=user.id,
-                    bolt_id=user.bolt_id,
-                    report_date=report_date,
-                    gross_total=float(row.get("gross_total", 0.0)),
-                    expenses_total=float(row.get("expenses_total", 0.0)),
-                    net_income=net_income,
-                    cash_collected=float(row.get("cash_collected", 0.0)),
-                    vat_due = vat_due,
-                    actual_income=actual_income
-                )
-                db.session.add(rec)
-                created += 1
-            else:
-                existing.gross_total = float(row.get("gross_total", 0.0))
-                existing.expenses_total = float(row.get("expenses_total", 0.0))
-                existing.net_income = net_income
-                existing.cash_collected = float(row.get("cash_collected", 0.0))
-                existing.vat_due = vat_due
-                existing.actual_income = actual_income
-                updated += 1
-
-                print("Row:", row.to_dict())
-                print("Matched user:", user)
-            
-        db.session.commit()
-        flash(f"Zaimportowano: {created}, zaktualizowano {updated}, pominięto: {skipped}", "success")
         return redirect(url_for('upload_csv'))
-    
     return render_template('admin/upload_csv.html', form=form)
-
-@app.route('/admin/upload-uber-csv', methods=['GET', 'POST'])
-@login_required
-def upload_uber_csv():
-    """
-    Import danych o zarobkach kierowców z platformy Uber z pliku CSV
-    Obsługuje:
-    - wczytywanie pliku
-    - mapowanie kolumn (z obsługą brakujących kolumn)
-    - obliczanie VAT i faktycznego zarobku
-    - zapis/aktualizację rekordów w bazie
-    """
-    if current_user.role != 'admin':
-        flash('Brak uprawnień administratora', 'danger')
-        return redirect(url_for('login_panel'))
-    
-    form = CSVUploadForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        file = form.file.data
-        if not file:
-            flash('Nie wybrano pliku', 'warning')
-            return redirect(request.url)
-        
-        #wczytaj CSV
-        try:
-            df = pd.read_csv(file, sep=None, engine='python', encoding='utf-8-sig')
-        except Exception:
-            file.seek(0)
-            df = pd.read_csv(file, sep=',', engine='python', encoding='utf-8-sig')
-
-        #mapowanie kolumn Uber (wszystkie możliwe kolumny)
-        map_cols = {
-            "Identyfikator UUID kierowcy": "uber_id",
-
-            "Wypłacono Ci : Twój przychód": "gross_net_income",
-            "Wypłacono Ci : Bilans przejazdu : Wypłaty : Odebrana gotówka": "cash_collected",
-            "Wypłacono Ci:Twój przychód:Opłata za usługę": "service_fee",
-            "Wypłacono Ci:Twój przychód:Opłata:Podatek od opłaty": "tax_on_fee",
-            "Wypłacono Ci:Twój przychód:Podatki:Podatek": "tax_general",
-            "Wypłacono Ci:Twój przychód:Podatki:Podatek od opłaty za usługę": "tax_on_service_fee",
-        }
-
-        #wybierz tylko te kolumny które istnieją w CSV
-        present = [src for src in map_cols if src in df.columns]
-        df = df[present].copy()
-        df.rename(columns=map_cols, inplace=True)
-
-        #konwersja na float, brakujące kolumny = 0.0
-        numeric_cols = [
-            "gross_net_income", "cash_collected", "service_fee", "tax_on_fee", "tax_general", "tax_on_service_fee"
-        ]
-
-        for c in numeric_cols:
-            if c in df.columns:
-                df[c] = df[c].fillna(0.0).astype(float)
-            else:
-                df[c] = 0.0
-
-        #data raportu z nazwy pliku
-        report_date = _extract_date_from_filename(file.filename)
-        df["report_date"] = report_date
-
-        #zapis do bazy
-        created, updated, skipped = 0, 0, 0
-        for _, row in df.iterrows():
-            user = None
-
-            #szukaj użytkownika po uber_id
-            if "uber_id" in row and str(row["uber_id"]).strip() and str(row["uber_id"]).lower() != "nan":
-                user = User.query.filter_by(uber_id=str(row["uber_id"]).strip()).first()
-
-            #szukaj po imieniu i nazwisku
-            if user is None and "first_name" in row and "last_name" in row:
-                full_name = f"{row['first_name']} {row['last_name']}".strip()
-                user = User.query.filter_by(username=full_name).first()
-
-            if user is None:
-                skipped += 1
-                continue
-
-            #logika biznesowa uber
-            gross_total = float(row.get("gross_net_income", 0.0))
-            expenses_total = abs(
-                float(row.get("service_fee", 0.0)) +
-                float(row.get("tax_on_service_fee", 0.0))
-            )
-
-            net_income = float(row.get("gross_net_income", 0.0))
-            cash_collected = abs(float(row.get("cash_collected", 0.0)))
-
-            vat_due = (
-                float(row.get("tax_on_fee", 0.0)) +
-                float(row.get("tax_general", 0.0)) +
-                float(row.get("tax_on_service_fee", 0.0))
-            )
-
-            actual_income = net_income - vat_due
-
-            existing = UberEarnings.query.filter_by(user_id=user.id, report_date=report_date).first()
-
-            if existing is None:
-                rec = UberEarnings(
-                    user_id=user.id,
-                    uber_id=user.uber_id,
-                    report_date=report_date,
-                    gross_total=gross_total,
-                    expenses_total=expenses_total,
-                    net_income=net_income,
-                    cash_collected=cash_collected,
-                    vat_due=vat_due,
-                    actual_income=actual_income
-                )
-                db.session.add(rec)
-                created += 1
-            else:
-                existing.gross_total = gross_total
-                existing.expenses_total = expenses_total
-                existing.net_income = net_income
-                existing.cash_collected = cash_collected
-                existing.vat_due = vat_due
-                existing.actual_income = actual_income
-                updated += 1
-            
-        db.session.commit()
-        flash(f"zaimportowano Uber: {created} nowych, {updated} zaktualizowanych, {skipped} pominiętych", "success")
-        return redirect(url_for('upload_uber_csv'))
-    
-    return render_template('admin/upload_uber_csv.html', form=form)
 
 @app.route('/admin/add-expense', methods=['GET', 'POST'])
 @login_required

@@ -168,7 +168,7 @@ class Expense(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<Wydatek {self.document_number} user_id={self.user_id} vat_deductible={self.vat.deductible}>"
+        return f"<Wydatek {self.document_number} user_id={self.user_id} vat_deductible={self.vat_deductible}>"
     
     @property
     def gross_amount(self):
