@@ -64,6 +64,9 @@ def create_app(config_name='development'):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     
+    from app.blueprints.auth import auth_bp
+    app.register_blueprint(auth_bp)
+
     with app.app_context():
         from . import routes, models
 
