@@ -5,6 +5,15 @@ Wszystkie istotne zmiany w tym projekcie będą dokumentowane w tym pliku.
 ---
 
 
+## [0.42] - 2025-10-30
+### Zmienione
+- refactor kodu na blueprinty
+ - Utworzenie blueprint 'auth' dla logowania/wylogowania
+ - Utworzenie blueprint 'admin' dla panelu administratora
+ - Utworzenie blueprint 'driver' dla panelu kierowcy
+
+---
+
 ## [0.41] - 2025-10-28
 ### Zmienione
 - refactor kodu:

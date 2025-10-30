@@ -11,7 +11,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('admin_dashboard') if current_user.is_authenticated and current_user.role == 'admin' else url_for('driver_dashboard') }}">
+      <a class="navbar-brand" href="{{ url_for('admin.dashboard') if current_user.is_authenticated and current_user.role == 'admin' else url_for('driver.dashboard') }}">
         Drivers Portal
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -21,11 +21,11 @@
         <ul class="navbar-nav ms-auto">
           {% if current_user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('logout') }}">Wyloguj</a>
+              <a class="nav-link" href="{{ url_for('auth.logout') }}">Wyloguj</a>
             </li>
           {% else %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('login_panel') }}">Panel logowania</a>
+              <a class="nav-link" href="{{ url_for('auth.login') }}">Panel logowania</a>
             </li>
           {% endif %}
         </ul>

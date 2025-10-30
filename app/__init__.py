@@ -65,10 +65,15 @@ def create_app(config_name='development'):
     login_manager.init_app(app)
     
     from app.blueprints.auth import auth_bp
+    from app.blueprints.admin import admin_bp
+    from app.blueprints.driver import driver_bp
+
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(driver_bp)
 
     with app.app_context():
-        from . import routes, models
+        from . import models
 
         #potrzebne do stworzenia konta administratora w konsoli
         from . import commands

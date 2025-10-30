@@ -9,9 +9,9 @@
   <hr>
 
   <h3>Zarządzaj kierowcami</h3>
-  <a href="{{ url_for('add_driver') }}" class="btn btn-primary mb-3">Dodaj nowego kierowcę</a>
-  <a href="{{ url_for('upload_csv') }}" class="btn btn-success mb-3">Import zarobków (CSV)</a>
-  <a href="{{ url_for('add_expense') }}" class="btn btn-warning mb-3">Dodaj fakturę kosztową</a>
+  <a href="{{ url_for('admin.add_driver') }}" class="btn btn-primary mb-3">Dodaj nowego kierowcę</a>
+  <a href="{{ url_for('admin.upload_csv') }}" class="btn btn-success mb-3">Import zarobków (CSV)</a>
+  <a href="{{ url_for('admin.add_expense') }}" class="btn btn-warning mb-3">Dodaj fakturę kosztową</a>
 
 <table class="table table-striped">
     <thead>
@@ -31,7 +31,7 @@
         <td>{{ driver.uber_id or 'Brak' }}</td>
         <td>{{ driver.bolt_id or 'Brak' }}</td>
         <td>
-          <a href="{{ url_for('driver_earnings', driver_id=driver.id) }}" class="btn btn-sm btn-primary">Zobacz zarobki</a>
+          <a href="{{ url_for('admin.driver_earnings', driver_id=driver.id) }}" class="btn btn-sm btn-primary">Zobacz zarobki</a>
         </td>
       </tr>
       {% else %}

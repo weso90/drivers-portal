@@ -5,7 +5,7 @@
 {% block content %}
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Zarobki kierowcy: {{ driver.username }}</h1>
-    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Powrót do panelu</a>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Powrót do panelu</a>
   </div>
   <hr>
 
@@ -24,7 +24,7 @@
         </div>
         <div class="col-md-4 d-flex align-items-end">
           <button type="submit" class="btn btn-primary me-2">Filtruj</button>
-          <a href="{{ url_for('driver_earnings', driver_id=driver.id) }}" class="btn btn-outline-secondary">Resetuj</a>
+          <a href="{{ url_for('admin.driver_earnings', driver_id=driver.id) }}" class="btn btn-outline-secondary">Resetuj</a>
         </div>
       </form>
     </div>

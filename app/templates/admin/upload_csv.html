@@ -5,7 +5,7 @@
 {% block content %}
   <h2 class="mb-4">Import zarobków (Bolt / Uber)</h2>
 
-  <form action="{{ url_for('upload_csv') }}" method="post" enctype="multipart/form-data" class="card p-3">
+  <form action="{{ url_for('admin.upload_csv') }}" method="post" enctype="multipart/form-data" class="card p-3">
     {{ form.csrf_token }}
     <div class="mb-3">
       {{ form.file.label(class="form-label") }}
