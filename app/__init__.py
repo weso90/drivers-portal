@@ -19,7 +19,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 
 #ustawienia dla niezalogowanych
-login_manager.login_view = 'login_panel'
+login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Strona wymaga logowania'
 login_manager.login_message_category = 'warning'
 
