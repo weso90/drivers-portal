@@ -12,6 +12,7 @@ from app.models import User, BoltEarnings, UberEarnings, Expense
 from app.forms import AddDriverForm, CSVUploadForm, AddExpenseForm
 import os
 from werkzeug.utils import secure_filename
+from sqlalchemy.exc import IntegrityError
 
 
 
@@ -52,17 +53,28 @@ def add_driver():
     """    
     form = AddDriverForm()
     if form.validate_on_submit():
-        new_driver = User(
-            username=form.username.data,
-            role='driver',
-            uber_id=form.uber_id.data,
-            bolt_id=form.bolt_id.data
-        )
-        new_driver.set_password(form.password.data)
-        db.session.add(new_driver)
-        db.session.commit()
-        flash(f'Konto dla kierowcy {new_driver.username} zostało utworzone', 'success')
-        return redirect(url_for('admin.dashboard'))
+        try:
+            existing_user = User.query.filter_by(username=form.username.data).first()
+            if existing_user:
+                flash('Użytkownik o tej nazwie już istnieje', 'danger')
+                return render_template('admin/add_driver.html', form=form)
+
+            new_driver = User(
+                username=form.username.data,
+                role='driver',
+                uber_id=form.uber_id.data,
+                bolt_id=form.bolt_id.data
+            )
+            new_driver.set_password(form.password.data)
+            db.session.add(new_driver)
+            db.session.commit()
+            flash(f'Konto dla kierowcy {new_driver.username} zostało utworzone', 'success')
+            return redirect(url_for('admin.dashboard'))
+        
+        except IntegrityError:
+            db.session.rollback()
+            flash('Użytkownik o tej nazwie już istnieje', 'danger')
+            return redirect(url_for('admin.dashboard'))
     
     return render_template('admin/add_driver.html', form=form)
 
