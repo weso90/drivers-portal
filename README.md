@@ -43,3 +43,11 @@ Projekt powstał jako pomoc przy rozliczaniu kierowców w prowadzonej działalno
 
 ## Historia zmian
 Szczegóły w pliku [CHANGELOG.md](CHANGELOG.md).
+
+## Testy
+
+Projekt posiada kompleksowy zestaw testów
+
+### Statystyki testów
+- **61 testów** (wszystkie przechodzą)
+- **70% pokrycia kodu**

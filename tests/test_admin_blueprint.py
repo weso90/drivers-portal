@@ -291,7 +291,10 @@ class TestDriverEarnings:
         response = client.get(f'/admin/driver/{driver_user.id}/earnings')
 
         assert response.status_code == 200
-        assert 'Brak danych' in response.data.decode('utf-8')
+        assert 'Bolt - Podsumowanie' in response.data.decode('utf-8')
+        assert 'Uber - Podsumowanie' in response.data.decode('utf-8')
+        assert 'Faktury kosztowe - Podsumowanie' in response.data.decode('utf-8')
+        assert '0.00 PLN' in response.data.decode('utf-8')
 
     def test_driver_earnings_shows_bolt_earnings(self, client, admin_user, driver_user, bolt_earnings):
         """
