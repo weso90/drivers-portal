@@ -51,3 +51,78 @@ Projekt posiada kompleksowy zestaw testów
 ### Statystyki testów
 - **61 testów** (wszystkie przechodzą)
 - **70% pokrycia kodu**
+
+## Jak uruchomić
+
+### Wymagania
+- Python 3.11+
+- pip
+
+### Instalacja
+
+1. Sklonuj repozytorium:
+```bash
+git clone 
+cd drivers-portal
+```
+
+2. Utwórz wirtualne środowisko:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
+
+3. Zainstaluj zależności:
+```bash
+pip install -r requirements.txt
+```
+
+4. Utwórz plik `.env` z konfiguracją:
+```
+SECRET_KEY=twoj-tajny-klucz
+DATABASE_URI=sqlite:///app.db
+UPLOAD_FOLDER=uploads
+MAX_CONTENT_LENGTH=16777216
+```
+
+5. Zainicjuj bazę danych:
+```bash
+flask db upgrade
+```
+
+6. Utwórz konto administratora:
+```bash
+flask create-admin admin haslo123
+```
+
+7. Uruchom aplikację:
+```bash
+python run.py
+```
+
+Aplikacja będzie dostępna pod adresem: `http://localhost:5000`
+
+### Uruchamianie testów
+```bash
+# Zainstaluj zależności deweloperskie
+pip install pytest pytest-cov
+
+# Uruchom testy
+pytest
+
+# Z pokryciem kodu
+pytest --cov=app --cov-report=term-missing
+```
+
+## Technologie
+- Python 3.11+
+- Flask
+- Flask-Login
+- Flask-Migrate / Alembic
+- SQLAlchemy
+- WTForms
+- Bootstrap 5
+- Pandas (import CSV)
+- pytest (testy)
+- pytest-cov (pokrycie kodu)
