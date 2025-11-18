@@ -120,7 +120,7 @@ def driver_earnings(driver_id):
 
     #oblicz sumy
     bolt_total = {
-        'gross': sum(float(e.gross_total) for e in bolt_earnings),
+        'gross': sum(float(e.net_income) for e in bolt_earnings),
         'cash': sum(float(e.cash_collected) for e in bolt_earnings),
         'vat': sum(float(e.vat_due) for e in bolt_earnings),
         'actual': sum(float(e.actual_income) for e in bolt_earnings),

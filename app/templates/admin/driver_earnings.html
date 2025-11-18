@@ -30,6 +30,57 @@
     </div>
   </div>
 
+  <!-- PODSUMOWANIE CAŁKOWITE -->
+  {% set total_gross = bolt_total.gross + uber_total.gross %}
+  {% set total_cash = bolt_total.cash + uber_total.cash %}
+  {% set total_vat = bolt_total.vat + uber_total.vat - expenses_total.vat_deductible %}
+  {% set total_actual = bolt_total.actual + uber_total.actual - total_vat %}
+  {% set total_without_cash = total_actual - total_cash %}
+
+  <div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+      <h3 class="mb-0">
+        Podsumowanie całkowite
+        {% if date_from|length > 0 or date_to|length > 0 %}
+          <small class="ms-2">
+            ({{ date_from if date_from else '...' }} - {{ date_to if date_to else '...' }})
+          </small>
+        {% endif %}
+      </h3>
+    </div>
+    <div class="card-body">
+      <div class="row text-center">
+        <div class="col-md-2">
+          <h6 class="text-muted">Zarobek</h6>
+          <h4>{{ "%.2f"|format(total_gross) }} PLN</h4>
+          <small class="text-muted">Bolt + Uber</small>
+        </div>
+        <div class="col-md-2">
+          <h6 class="text-muted">Odebrana gotówka</h6>
+          <h4>{{ "%.2f"|format(total_cash) }} PLN</h4>
+          <small class="text-muted">Bolt + Uber</small>
+        </div>
+        <div class="col-md-2">
+          <h6 class="text-muted">VAT</h6>
+          <h4 class="text-danger">{{ "%.2f"|format(total_vat) }} PLN</h4>
+          <small class="text-muted">Bolt + Uber - odliczenia</small>
+        </div>
+        <div class="col-md-3">
+          <h6 class="text-muted">Faktyczny zarobek</h6>
+          <h3 class="text-primary fw-bold">{{ "%.2f"|format(total_actual) }} PLN</h3>
+          <small class="text-muted">Po VAT</small>
+        </div>
+        <div class="col-md-3">
+          <h6 class="text-muted">Zarobek bez gotówki</h6>
+          <h3 class="text-success fw-bold">{{ "%.2f"|format(total_without_cash) }} PLN</h3>
+          <small class="text-muted">Do wypłaty</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
   <!-- Podsumowanie Bolt -->
   <div class="card mb-4">
     <div class="card-header bg-success text-white">

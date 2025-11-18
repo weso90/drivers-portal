@@ -28,9 +28,6 @@ Projekt powstał jako pomoc przy rozliczaniu kierowców w prowadzonej działalno
   - dodanie możliwości edycji i usuwania użytkownika
   - tworzenie raportów tygodniowych na podstawie rozliczeń
 
-## Jak uruchomić
- --- DO UZUPEŁNIENIA ---
-
 ## Technologie
 - Python 3.11+
 - Flask
