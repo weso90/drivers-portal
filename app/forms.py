@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, SelectField, DecimalField, DateField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, FileField, SelectField, DecimalField, DateField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, ValidationError
 from datetime import date, timedelta
 
@@ -54,3 +54,29 @@ class AddExpenseForm(FlaskForm):
             raise ValidationError(f'Data wystawienia nie może być starsza niż {max_past_date.strftime("%y-%m-%d")}')
         if field.data > date.today():
             raise ValidationError('Data wystawienia nie może być w przyszłości')
+        
+class GenerateReportForm(FlaskForm):
+    """
+    Formularz generowania raportu tygodniowego
+    """
+    driver_id = SelectField('Kierowca', coerce=int, validators=[DataRequired()])
+    report_name = StringField('Nazwa raportu', validators=[DataRequired(), Length(max=128)],
+                              render_kw={"placeholder": "np. Tydzień 40/2024"})
+    date_from = DateField('Data od', format='%Y-%m-%d', validators=[DataRequired()])
+    date_to = DateField('Data do', format='%Y-%m-%d', validators=[DataRequired()])
+
+    #checkboxy
+    settlement_fee = BooleanField('Opłata za rozliczenie (30zł)')
+    contract_fee = BooleanField('Umowa zlecenie (150zł)')
+
+    #kwota paliwa
+    fuel_amount = DecimalField('Paliwo (PLN)', places=2, validators=[Optional(), NumberRange(min=0)], default=0)
+
+    submit = SubmitField('Generuj raport')
+
+    def validate_date_to(self, field):
+        """
+        Data końcowa musi być >= data początkowa
+        """
+        if field.data < self.date_from.data:
+            raise ValidationError('Data końcowa nie może być wcześniejsza niż początkowa')
